@@ -38,3 +38,11 @@ When executing sprint-based or complex engineering tasks across multiple days in
 Your GitHub profile is your living resume. Make sure your repositories communicate value instantly:
 * **Descriptive Metadata:** Keep GitHub repository descriptions punchy, highlighting the core tech stack (Python, PostgreSQL/pgvector, LangChain) and architectural patterns (RAG, hybrid search, agentic workflows).
 * **Comprehensive Documentation:** Maintain a thorough `README.md` that outlines the roadmap, architecture diagrams, and setup instructions.
+
+---
+
+## 6. Living Documentation & Glossary Maintenance
+As new tools, libraries, or conceptual patterns are introduced during a sprint:
+* **Immediate Updates:** Whenever a new technical term, architecture pattern, or core concept is learned, append or edit it in `GLOSSARY.md` with beginner-friendly definitions and analogies.
+* **Session Retrospectives:** Continuously update `SESSION_JOURNEY.md` to capture architectural reviews, design decisions, and interview-ready soundbites.
+* **Pre-Logout Check:** Treat documentation updates as an mandatory step of the completion cycle before running final Git commits and shutting down.
