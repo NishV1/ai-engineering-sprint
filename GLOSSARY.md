@@ -44,3 +44,9 @@ A living reference guide for all tools, languages, libraries, and technical conc
 * **Metadata Tracking:** Storing extra "label" information alongside your main data. In our RAG pipeline, we store the `source_file` name and `page_number` alongside our text chunks so we can trace exactly where an answer came from.
 * **Idempotency / Self-Healing Scripts:** Code design where running a script multiple times produces the same safe result without breaking things. For example, writing database code that checks `DROP TABLE IF EXISTS` so it can cleanly rebuild itself if something gets wiped out.
 * **Retrieval-Augmented Generation (RAG):** An architectural pattern where an AI model doesn't just rely on what it memorized during training; instead, it searches your private database (like your PDF chunks) for relevant facts first, and then *augments* its answer using that retrieved data.
+
+---
+
+## 6. Search & Retrieval Metrics (Day 4 Additions)
+* **Cosine Distance (`<=>`):** A mathematical metric measuring the cosine of the angle between two vectors. In pgvector, smaller distance values represent higher semantic alignment.
+* **Unified Application Architecture:** Design pattern where initialization, data ingestion, and query interfaces are combined into a single continuous program to prevent state and database synchronization bugs.

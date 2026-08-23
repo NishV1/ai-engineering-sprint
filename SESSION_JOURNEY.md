@@ -33,3 +33,13 @@ This document logs the daily architectural concepts, engineering decisions, tech
   * *Metadata Lineage:* Storing `source_file` and `page_number` alongside vector embeddings ensures traceability and minimizes LLM hallucinations by enabling verifiable source citations.
   * *Idempotency & Self-Healing:* Designing scripts with `DROP TABLE IF EXISTS` and `CREATE EXTENSION IF NOT EXISTS` ensures pipelines automatically reconcile database states to match required schemas after environment resets.
   * *Interview Framing:* "I use `PyPDFLoader` to extract text while maintaining document lineage by capturing metadata like page numbers and source filenames. This allows for 'Source Attribution,' where the application retrieves a verifiable reference alongside the answer, which is critical for building user trust."
+
+---
+
+## 🟡 Day 4: Unified Ingestion & CLI Search Engine
+* **Core Goal:** Consolidate PDF parsing, vector storage, and interactive search into a single self-healing application (`rag_app.py`).
+* **Key Technologies:** LangChain PDF loaders, Sentence-Transformers (`all-MiniLM-L6-v2`), PostgreSQL (`pgvector`), Python CLI loops.
+* **Engineering Tidbits & Review:**
+  * *Unified Architecture:* Combining ingestion and search into one script eliminates database and schema mismatch errors across separate scripts.
+  * *Idempotent Pre-flight Checks:* Programmatically verifying database existence, enabling the `vector` extension, and checking chunk counts before triggering ingestion makes the application robust and production-ready.
+  * *Interview Framing:* "For Day 4, I engineered a unified RAG engine that checks database state, self-heals schemas and vector extensions, processes multi-page technical manuals into dense vector embeddings, and exposes a real-time semantic CLI search terminal with source and page-level citations."
