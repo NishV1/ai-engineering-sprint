@@ -43,3 +43,33 @@ This document logs the daily architectural concepts, engineering decisions, tech
   * *Unified Architecture:* Combining ingestion and search into one script eliminates database and schema mismatch errors across separate scripts.
   * *Idempotent Pre-flight Checks:* Programmatically verifying database existence, enabling the `vector` extension, and checking chunk counts before triggering ingestion makes the application robust and production-ready.
   * *Interview Framing:* "For Day 4, I engineered a unified RAG engine that checks database state, self-heals schemas and vector extensions, processes multi-page technical manuals into dense vector embeddings, and exposes a real-time semantic CLI search terminal with source and page-level citations."
+
+---
+
+## 🟢 Day 5: Generative RAG & Local LLM Integration (Review & Retrospective)
+
+### 📊 Architectural Review & Design Decisions
+* **Private, Air-Gapped Stack:** Successfully deployed a fully offline pipeline combining PostgreSQL (`pgvector`), `sentence-transformers` (`all-MiniLM-L6-v2`), and local `llama3.2` via Ollama and LangChain (`ChatOllama`). This guarantees zero external data leakage and eliminates cloud API latency.
+* **Strict Context Grounding:** Implemented rigorous prompt constraints that restrict the LLM to utilizing *only* the retrieved database chunks. This eliminates hallucination risks and enforces deterministic answering.
+* **End-to-End Citation Lineage:** Preserved metadata (source filename and exact page numbers) from initial PDF ingestion through vector similarity search all the way to final LLM output generation, ensuring complete auditability.
+
+### 🎙️ Interview Soundbites & Engineering Defense
+* **On Local Privacy:** *"When architecting our RAG pipeline, I prioritized a local-first stack using Ollama and pgvector. This ensures complete data sovereignty and complies with strict enterprise governance where proprietary documents cannot touch external cloud APIs."*
+* **On Combating Hallucinations:** *"To ensure production-grade reliability, I enforced strict prompt-level grounding. By forcing the model to rely solely on retrieved PostgreSQL chunks and cite exact page numbers, I eliminated unverified extrapolations."*
+* **On Traceability:** *"Maintainability in RAG requires robust metadata flow. I engineered our ingestion and database schema to track document lineage end-to-end, making debugging and source verification trivial for end users."*
+
+---
+
+## 🟢 Day 6: Advanced Retrieval Architecture (Hybrid Search & Reranking)
+
+### 📊 Architectural Review & Design Decisions
+* **Hybrid Retrieval (Vector + BM25):** Combined dense semantic vector search (via PostgreSQL `pgvector` and Sentence-Transformers) with lexical keyword matching (`rank-bm25`). This bridges the gap between conceptual understanding and exact-match precision for specific model numbers, acronyms, or part numbers.
+* **Reciprocal Rank Fusion (RRF):** Integrated RRF to cleanly merge semantic and keyword result lists without requiring complex score normalization, ensuring a robust and balanced candidate pool.
+* **Cross-Encoder Reranking:** Deployed a local cross-encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`) to evaluate query-document pairs simultaneously in deeper transformer layers. This filters out noisy candidates and passes only the absolute sharpest chunks to the local LLM.
+
+### 🎙️ Interview Soundbites & Engineering Defense
+* **On Overcoming Vector Search Limitations:** *"While dense vector embeddings excel at semantic matching, they often fail on exact keyword or serial number lookups. On Day 6, I engineered a hybrid retrieval system combining PostgreSQL vector similarity with BM25 lexical search, merged via Reciprocal Rank Fusion."*
+* **On Precision Reranking:** *"To optimize context quality and prevent context window pollution, I introduced a cross-encoder reranking layer. Instead of relying solely on bi-encoder distance metrics, the cross-encoder deeply scores query-chunk relevance, significantly boosting retrieval precision before handing data off to Ollama."*
+
+---
+

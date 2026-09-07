@@ -50,3 +50,20 @@ A living reference guide for all tools, languages, libraries, and technical conc
 ## 6. Search & Retrieval Metrics (Day 4 Additions)
 * **Cosine Distance (`<=>`):** A mathematical metric measuring the cosine of the angle between two vectors. In pgvector, smaller distance values represent higher semantic alignment.
 * **Unified Application Architecture:** Design pattern where initialization, data ingestion, and query interfaces are combined into a single continuous program to prevent state and database synchronization bugs.
+
+---
+
+## 7. Generative RAG & LLM Concepts (Day 5 Additions)
+* **Generative RAG:** An architecture that combines information retrieval (finding relevant chunks via vector search) with generative text synthesis (using an LLM to answer the user's query based *only* on those chunks).
+* **Ollama:** A lightweight framework designed for running large language models locally on your hardware, exposing a local API server for offline AI applications.
+* **Context Grounding / Prompt Constraints:** The practice of strictly instructing an LLM to answer using *only* the provided text context to prevent hallucinations and ensure traceability.
+* **Citation Lineage:** The tracking of source metadata (filename, page numbers) from raw document ingestion through vector storage all the way to final LLM output generation.
+
+---
+
+## 8. Advanced Retrieval Concepts (Day 6 Additions)
+* **Hybrid Search:** A retrieval strategy that combines semantic search (understanding the meaning of a query via vector embeddings) with lexical search (matching exact words via BM25/full-text search).
+* **Reciprocal Rank Fusion (RRF):** An algorithm used to combine multiple ranked lists of search results into a single unified ranking based on item positions, avoiding score scale disparities.
+* **Cross-Encoder Reranker:** A machine learning model that evaluates a search query and a document text *together* simultaneously, producing a highly accurate relevance score used to rerank the top candidate chunks.
+
+---

@@ -19,8 +19,9 @@ A comprehensive, production-ready Retrieval-Augmented Generation (RAG) and AI en
 * **[Day 1] Infrastructure & Vector Storage:** Setting up Dockerized PostgreSQL, configuring native vector types, and running vector math (`pgvector`, `psycopg2`, cosine distance).
 * **[Day 2] Smart Chunking & Batch Embeddings:** Implementing LangChain's `RecursiveCharacterTextSplitter` and generating local 384-dimensional dense embeddings in batches.
 * **[Day 3] Real PDF Ingestion & Metadata Tracking:** Parsing multi-page documentation with persistent source lineages (`source_file`, `page_number`) to eliminate hallucinations and enable verifiable citations.
-* **[Day 4] Interactive CLI Search Interface:** *(Upcoming)* Live terminal queries searching through vector chunks with real-time similarity metrics.
-* **[Future Days] Advanced Features:** Hybrid Search (BM25 + Dense Vectors), Cross-Encoder Rerankers, Ragas Evaluation, and Agentic Workflows via LangGraph.
+* **[Day 4-5] Local Generative RAG & LLM Integration:** Air-gapped orchestration using Ollama (`llama3.2`) and LangChain to synthesize grounded answers with end-to-end page-level citations.
+* **[Day 6] Advanced Retrieval Architecture:** Hybrid Search combining dense vector embeddings with BM25 keyword matching via Reciprocal Rank Fusion (RRF), paired with a Cross-Encoder Reranker (`ms-marco-MiniLM-L-6-v2`).
+* **[Future Days] Advanced Features:** Ragas Evaluation, FastAPI Backend, and Agentic Workflows via LangGraph.
 
 ---
 
@@ -31,6 +32,8 @@ A comprehensive, production-ready Retrieval-Augmented Generation (RAG) and AI en
 ├── db_test.py              # Day 1: Vector storage & basic database checks
 ├── chunking_test.py        # Day 2: Semantic text splitting & embedding generation
 ├── pdf_ingest.py           # Day 3: Multi-page PDF parser & metadata injector
+├── generative_rag.py       # Day 5: Offline generative RAG pipeline with Ollama
+├── hybrid_rag.py           # Day 6: Hybrid search (BM25 + Vector) & Cross-Encoder reranking
 ├── DEV_WORKFLOW.md         # Standard operating procedures & engineering playbook
 ├── SESSION_JOURNEY.md      # Architectural logs, design decisions & reviews
 └── GLOSSARY.md             # Beginner-friendly AI dictionary & technical reference
