@@ -67,3 +67,12 @@ A living reference guide for all tools, languages, libraries, and technical conc
 * **Cross-Encoder Reranker:** A machine learning model that evaluates a search query and a document text *together* simultaneously, producing a highly accurate relevance score used to rerank the top candidate chunks.
 
 ---
+
+## 9. Production APIs, UI & Dynamic Scale (Day 7-9 Additions)
+* **FastAPI:** A modern, high-performance Python web framework for building asynchronous REST APIs with automatic interactive documentation (`/docs`).
+* **Streamlit:** An open-source Python framework that allows developers to build interactive web applications and chat UIs quickly using pure Python scripts.
+* **Asynchronous Execution (`async`/`await`):** A programming pattern allowing code to handle multiple tasks concurrently (such as simultaneous API requests or database calls) without blocking the main execution thread.
+* **Dynamic Ingestion:** The capability to ingest new files, documents, or data payloads at runtime via API endpoints or UI upload buttons without needing to restart backend services or redeploy code.
+* **Ragas (Retrieval Augmented Generation Assessment):** An automated open-source framework used to scientifically evaluate RAG pipelines using specialized metrics like faithfulness, answer relevance, and context precision.
+* **Faithfulness:** A Ragas evaluation metric measuring whether the generated answer is strictly grounded in the retrieved context, effectively scoring the LLM's hallucination rate.
+* **Context Precision:** A Ragas retrieval metric measuring whether the most relevant chunks are ranked highest in the retrieved context window, evaluating the efficiency of your reranker.
