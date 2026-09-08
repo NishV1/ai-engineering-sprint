@@ -73,3 +73,15 @@ This document logs the daily architectural concepts, engineering decisions, tech
 
 ---
 
+## 🟢 Day 7: Production REST API (FastAPI), Streamlit UI, & Dynamic Ingestion Architecture
+
+### 📊 Architectural Review & Design Decisions
+* **FastAPI Service Layer (`app.py`):** Wrapped the Day 6 hybrid search and cross-encoder reranking engine into an asynchronous REST API (`/query`). Initialized and cached models and BM25 index globally at startup to eliminate latency.
+* **Interactive Chat Interface (`app_ui.py`):** Built a responsive frontend using Streamlit to provide a visual chat experience with live assistant responses and page-level source citations.
+* **Dynamic Ingestion Architecture:** Mapped out the multi-document ingestion strategy, establishing the blueprint for runtime runtime ingestion via a future FastAPI `/upload` endpoint and Streamlit file uploader widget.
+
+### 🎙️ Interview Soundbites & Engineering Defense
+* **On Moving from Scripts to Services:** *"On Day 7, I transitioned the RAG pipeline from an offline CLI script into a production-grade FastAPI backend service, enabling asynchronous handling, structured Pydantic data validation, and automated Swagger documentation."*
+* **On Full-Stack AI Engineering & System Design:** *"To bridge the backend to users, I built a companion Streamlit chat interface that preserves session state and renders verifiable page citations, while also designing the runtime dynamic ingestion architecture for multi-document scalability."*
+
+---

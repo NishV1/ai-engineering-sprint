@@ -21,7 +21,10 @@ A comprehensive, production-ready Retrieval-Augmented Generation (RAG) and AI en
 * **[Day 3] Real PDF Ingestion & Metadata Tracking:** Parsing multi-page documentation with persistent source lineages (`source_file`, `page_number`) to eliminate hallucinations and enable verifiable citations.
 * **[Day 4-5] Local Generative RAG & LLM Integration:** Air-gapped orchestration using Ollama (`llama3.2`) and LangChain to synthesize grounded answers with end-to-end page-level citations.
 * **[Day 6] Advanced Retrieval Architecture:** Hybrid Search combining dense vector embeddings with BM25 keyword matching via Reciprocal Rank Fusion (RRF), paired with a Cross-Encoder Reranker (`ms-marco-MiniLM-L-6-v2`).
-* **[Future Days] Advanced Features:** Ragas Evaluation, FastAPI Backend, and Agentic Workflows via LangGraph.
+* **[Day 7] Production REST API, Streamlit UI, & Dynamic Ingestion Architecture:** Exposing the hybrid RAG pipeline via FastAPI (`app.py`), building an interactive chat frontend (`app_ui.py`), and mapping out multi-document runtime ingestion.
+* **[Day 8] Scientific Rigor (Ragas Evaluation):** Implementing automated benchmarking for faithfulness, context precision, and answer relevance.
+* **[Day 9] Dynamic File Ingestion Execution:** Building runtime file upload capabilities (`/upload` API + Streamlit file uploader) for multi-document scaling.
+* **[Future Days] Advanced Features:** Agentic Workflows via LangGraph.
 
 ---
 
@@ -34,6 +37,8 @@ A comprehensive, production-ready Retrieval-Augmented Generation (RAG) and AI en
 ├── pdf_ingest.py           # Day 3: Multi-page PDF parser & metadata injector
 ├── generative_rag.py       # Day 5: Offline generative RAG pipeline with Ollama
 ├── hybrid_rag.py           # Day 6: Hybrid search (BM25 + Vector) & Cross-Encoder reranking
+├── app.py                  # Day 7: FastAPI backend service for hybrid RAG
+├── app_ui.py               # Day 7: Streamlit interactive chat UI
 ├── DEV_WORKFLOW.md         # Standard operating procedures & engineering playbook
 ├── SESSION_JOURNEY.md      # Architectural logs, design decisions & reviews
 └── GLOSSARY.md             # Beginner-friendly AI dictionary & technical reference
