@@ -2,7 +2,7 @@
 
 This document outlines the specific local development workflow, environment setup, and execution steps for the **Air-Gapped Hybrid RAG System**. 
 
-For our universal engineering standards, infrastructure hygiene, and defensive coding rules, refer to the [AI Engineering Playbook](./AI_ENGINEERING_PLAYBOOK.md).
+For our universal engineering standards, infrastructure hygiene, and defensive coding rules, refer to the [AI Engineering Playbook](./PLAYBOOK.md).
 
 ---
 
