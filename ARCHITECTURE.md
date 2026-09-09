@@ -55,3 +55,16 @@ PostgreSQL + pgvector           In-Memory BM25 Pool
 * **Vector Storage:** PostgreSQL 16 + `pgvector` extension (Dockerized)
 * **Embeddings & Reranking:** `sentence-transformers`, `rank_bm25`
 * **Local LLM Engine:** Ollama (`llama3.2`)
+
+---
+
+## 📊 4. System Evaluation & Benchmarking (Ragas)
+
+To eliminate "vibe-based" RAG development and guarantee production-grade reliability, the pipeline is continuously evaluated using **Ragas (Retrieval Augmented Generation Assessment)** running locally via an air-gapped Ollama judge.
+
+### Core Metrics Tracked:
+* **Faithfulness (Score: 0.68+):** Measures whether the generated answer relies strictly on the retrieved context, verifying that the model avoids hallucinations.
+* **Answer Relevancy (Score: 0.83+):** Ensures the synthesized response directly answers the user's prompt without introducing irrelevant tangents.
+* **Context Precision / Recall (Score: 1.00 Context Recall):** Validates that our Hybrid Search + Cross-Encoder reranking pipeline successfully pulls and prioritizes the exact context chunks required to answer the query.
+
+*For detailed test runs and query logs, see the generated [evaluation_report.csv](./evaluation_report.csv).*

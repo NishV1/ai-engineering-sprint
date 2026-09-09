@@ -78,10 +78,22 @@ This document logs the daily architectural concepts, engineering decisions, tech
 ### 📊 Architectural Review & Design Decisions
 * **FastAPI Service Layer (`app.py`):** Wrapped the Day 6 hybrid search and cross-encoder reranking engine into an asynchronous REST API (`/query`). Initialized and cached models and BM25 index globally at startup to eliminate latency.
 * **Interactive Chat Interface (`app_ui.py`):** Built a responsive frontend using Streamlit to provide a visual chat experience with live assistant responses and page-level source citations.
-* **Dynamic Ingestion Architecture:** Mapped out the multi-document ingestion strategy, establishing the blueprint for runtime runtime ingestion via a future FastAPI `/upload` endpoint and Streamlit file uploader widget.
+* **Dynamic Ingestion Architecture:** Mapped out the multi-document ingestion strategy, establishing the blueprint for runtime ingestion via a FastAPI `/upload` endpoint and Streamlit file uploader widget.
 
 ### 🎙️ Interview Soundbites & Engineering Defense
 * **On Moving from Scripts to Services:** *"On Day 7, I transitioned the RAG pipeline from an offline CLI script into a production-grade FastAPI backend service, enabling asynchronous handling, structured Pydantic data validation, and automated Swagger documentation."*
 * **On Full-Stack AI Engineering & System Design:** *"To bridge the backend to users, I built a companion Streamlit chat interface that preserves session state and renders verifiable page citations, while also designing the runtime dynamic ingestion architecture for multi-document scalability."*
 
 ---
+
+## 🔵 Day 8: Scientific Rigor & Automated Evaluation (Ragas)
+
+### 📊 Architectural Review & Design Decisions
+* **Metrics-Driven Pipeline Validation:** Replaced subjective "vibe-based" testing with automated, data-driven pipeline benchmarking using **Ragas (Retrieval Augmented Generation Assessment)**.
+* **Air-Gapped Evaluation Judges:** Configured Ragas to run entirely offline by wrapping local Ollama models (`llama3.2`) and HuggingFace embeddings as the evaluation judge engine, ensuring zero cloud API dependencies.
+* **Core Metrics Tracked:** Measured **Faithfulness** (hallucination detection), **Answer Relevancy** (prompt adherence), and **Context Recall** (retrieval quality) to scientifically validate that Hybrid Search + Cross-Encoder reranking delivers optimal context to the LLM.
+* **Automated Reporting:** Exported structured evaluation logs directly to `evaluation_report.csv` for continuous integration tracking and portfolio documentation.
+
+### 🎙️ Interview Soundbites & Engineering Defense
+* **On Moving Beyond Vibe Checks:** *"To treat AI engineering with the same rigor as traditional software engineering, I implemented automated evaluation using Ragas. Instead of subjectively testing a few prompts, I built an evaluation harness that scores faithfulness, answer relevancy, and context recall against a golden dataset."*
+* **On Local Benchmarking:** *"Maintaining strict data privacy requirements, I configured Ragas to execute its evaluation judge locally via Ollama, proving that advanced pipeline benchmarking can be achieved completely air-gapped without relying on external cloud APIs like OpenAI."*

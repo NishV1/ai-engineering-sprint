@@ -37,27 +37,59 @@ For our universal engineering standards, infrastructure hygiene, and defensive c
     cp .env.example .env
 
 ### Python Virtual Environment
-    # Create and activate virtual environment (Windows PowerShell)
-    python -m venv venv
-    .\venv\Scripts\Activate
+```bash
+# Create and activate virtual environment (Windows PowerShell)
+python -m venv venv
+.\venv\Scripts\Activate
 
-    # Install project dependencies
-    pip install -r requirements.txt
+# Install project dependencies
+pip install -r requirements.txt
+```
 
 ---
 
 ## 🏃 3. Running the Application Services
 
 ### Initialize Infrastructure & Model
-    # 1. Start PostgreSQL with pgvector
-    docker compose up -d
+```bash
+# 1. Start PostgreSQL with pgvector
+docker compose up -d
 
-    # 2. Pull local model in Ollama
-    ollama pull llama3.2
+# 2. Pull local model in Ollama
+ollama pull llama3.2
+```
 
 ### Run Services (Dual Terminal Setup)
-    # Terminal 1: Launch FastAPI Backend (Docs at http://localhost:8000/docs)
-    uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```bash    
+# Terminal 1: Launch FastAPI Backend (Docs at http://localhost:8000/docs)
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 
-    # Terminal 2: Launch Streamlit Frontend UI (Opens at http://localhost:8501)
-    streamlit run app_ui.py
+# Terminal 2: Launch Streamlit Frontend UI (Opens at http://localhost:8501)
+streamlit run app_ui.py
+```
+
+---
+
+## 🧪 4. Testing & Scientific Evaluation
+```bash   
+# To verify pipeline quality and check benchmark scores (Faithfulness, Answer Relevancy, Context Precision/Recall) using Ragas:
+python evaluate_rag.py
+
+# This executes the automated evaluation suite against your golden dataset and exports metrics to evaluation_report.csv.
+```
+
+---
+
+## 🧹 5. Database Maintenance & Reset Procedures
+
+### If your vector database encounters schema conflicts or requires a fresh ingestion run:
+```bash
+# Tear down containers and clear persistent volumes:
+docker compose down -v
+    
+# Restart fresh container instances:
+docker compose up -d
+
+# Re-run document ingestion and embedding generation:
+python pdf_ingest.py
+```
