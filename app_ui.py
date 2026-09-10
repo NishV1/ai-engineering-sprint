@@ -23,7 +23,7 @@ if uploaded_file is not None:
         with st.spinner("Processing, vectorizing, and indexing document..."):
             try:
                 files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
-                response = requests.post(UPLOAD_URL, files=files, timeout=60)
+                response = requests.post(UPLOAD_URL, files=files, timeout=300)
                 
                 if response.status_code == 200:
                     data = response.json()
@@ -83,3 +83,15 @@ if prompt := st.chat_input("Ask a question about your docs..."):
                 st.error("Could not connect to the FastAPI backend. Make sure `uvicorn app:app --reload` is running!")
             except Exception as e:
                 st.error(f"An error occurred: {e}")
+
+# --- Sidebar File Inventory ---
+st.sidebar.divider()
+st.sidebar.subheader("📚 Active Documents")
+try:
+    res = requests.get("http://127.0.0.1:8000/files")
+    if res.status_code == 200:
+        active_files = res.json().get("files", [])
+        for f in active_files:
+            st.sidebar.text(f"• {f}")
+except:
+    st.sidebar.text("Could not fetch file list.")

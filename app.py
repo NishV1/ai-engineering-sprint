@@ -3,6 +3,7 @@ import shutil
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import psycopg2
+import psycopg2.extras
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from rank_bm25 import BM25Okapi
 from langchain_ollama import ChatOllama
@@ -83,7 +84,7 @@ class QueryResponse(BaseModel):
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
-    """Dynamically ingests a new PDF, chunks it, stores embeddings in PostgreSQL, and hot-reloads search indices."""
+    """Dynamically ingests a new PDF, batch-embeds chunks, bulk-inserts into PostgreSQL, and hot-loads search indices."""
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
     
@@ -107,38 +108,61 @@ async def upload_pdf(file: UploadFile = File(...)):
         if not chunks:
             raise HTTPException(status_code=400, detail="No extractable text found in PDF.")
 
-        # 3. Generate Embeddings & Insert into PostgreSQL pgvector
+        # Extract texts, page numbers, and sources
+        texts = [chunk.page_content for chunk in chunks]
+        page_nums = [chunk.metadata.get("page", 0) + 1 for chunk in chunks]
+        source_files = [file.filename] * len(chunks)
+
+        # 3. Batch Generate Embeddings (lightning fast compared to individual loop)
+        print(f"⚡ Batch generating embeddings for {len(texts)} chunks of {file.filename}...")
+        embeddings = embedding_model.encode(texts, batch_size=32).tolist()
+
+        # Prepare records for bulk insert
+        records = list(zip(texts, embeddings, source_files, page_nums))
+
+        # 4. Bulk Insert into PostgreSQL pgvector
         conn = psycopg2.connect(
             host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
         )
         cursor = conn.cursor()
 
-        inserted_count = 0
-        for chunk in chunks:
-            text = chunk.page_content
-            page_num = chunk.metadata.get("page", 0) + 1
-            embedding = embedding_model.encode(text).tolist()
-
-            insert_sql = """
-                INSERT INTO document_chunks (chunk_text, embedding, source_file, page_number)
-                VALUES (%s, %s::vector, %s, %s);
-            """
-            cursor.execute(insert_sql, (text, embedding, file.filename, page_num))
-            inserted_count += 1
-
+        insert_sql = """
+            INSERT INTO document_chunks (chunk_text, embedding, source_file, page_number)
+            VALUES %s;
+        """
+        psycopg2.extras.execute_values(
+            cursor, insert_sql, records, template="(%s, %s::vector, %s, %s)"
+        )
+        
         conn.commit()
         cursor.close()
         conn.close()
 
-        # 4. Hot-Reload BM25 & Lookup Cache in Memory
+        # 5. Hot-Reload BM25 & Lookup Cache in Memory
         load_corpus_from_db()
 
         return {
             "status": "success",
             "filename": file.filename,
-            "chunks_ingested": inserted_count,
-            "message": f"Successfully ingested {file.filename} into vector storage and updated active search indices."
+            "chunks_ingested": len(chunks),
+            "message": f"Successfully batch-ingested {file.filename} into vector storage and updated active search indices."
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/files")
+def list_ingested_files():
+    """Returns a list of all unique source files currently stored in the vector database."""
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT source_file FROM document_chunks;")
+        files = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+        return {"files": files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
