@@ -17,12 +17,12 @@ app = FastAPI(
     version="1.1.0"
 )
 
-# Configuration Constants
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "vector_db"
-DB_USER = "postgres"
-DB_PASSWORD = "password"
+# Configuration Constants with Environment Variable Fallbacks
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "vector_db")
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
 
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 RERANKER_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"

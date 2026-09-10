@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: pgvector/pgvector:pg17
@@ -10,6 +12,37 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: rag_fastapi_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=aidb
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+    depends_on:
+      - postgres
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: rag_streamlit_ui
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: always
 
 volumes:
   pgdata:

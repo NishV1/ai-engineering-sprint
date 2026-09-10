@@ -1,9 +1,13 @@
 import streamlit as st
+import os
 import requests
 
-# FastAPI Backend Endpoints
-API_URL = "http://127.0.0.1:8000/query"
-UPLOAD_URL = "http://127.0.0.1:8000/upload"
+# FastAPI Backend Base URL (defaults to localhost for local dev, or http://backend:8000 in Docker)
+API_BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+
+API_URL = f"{API_BASE_URL}/query"
+UPLOAD_URL = f"{API_BASE_URL}/upload"
+FILES_URL = f"{API_BASE_URL}/files"
 
 st.set_page_config(
     page_title="Air-Gapped Hybrid RAG Explorer",
