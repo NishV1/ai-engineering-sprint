@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
 
-# FastAPI Backend Endpoint
+# FastAPI Backend Endpoints
 API_URL = "http://127.0.0.1:8000/query"
+UPLOAD_URL = "http://127.0.0.1:8000/upload"
 
 st.set_page_config(
     page_title="Air-Gapped Hybrid RAG Explorer",
@@ -12,6 +13,28 @@ st.set_page_config(
 
 st.title("🛡️ Air-Gapped Hybrid RAG Assistant")
 st.markdown("Ask questions about your ingested documentation. Powered by Hybrid Search (Vector + BM25), Cross-Encoder Reranking, and local Llama 3.2.")
+
+# --- Sidebar for Dynamic Document Ingestion ---
+st.sidebar.header("📁 Document Ingestion")
+uploaded_file = st.sidebar.file_uploader("Upload a PDF Manual", type=["pdf"])
+
+if uploaded_file is not None:
+    if st.sidebar.button("Ingest Document"):
+        with st.spinner("Processing, vectorizing, and indexing document..."):
+            try:
+                files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
+                response = requests.post(UPLOAD_URL, files=files, timeout=60)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    st.sidebar.success(f"✅ Ingested {data['filename']} ({data['chunks_ingested']} chunks)!")
+                else:
+                    error_detail = response.json().get("detail", "Unknown error")
+                    st.sidebar.error(f"❌ Ingestion failed: {error_detail}")
+            except requests.exceptions.ConnectionError:
+                st.sidebar.error("Could not connect to FastAPI backend.")
+            except Exception as e:
+                st.sidebar.error(f"An error occurred: {e}")
 
 # Initialize chat history in session state
 if "messages" not in st.session_state:

@@ -1,16 +1,19 @@
 import os
-from fastapi import FastAPI, HTTPException
+import shutil
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import psycopg2
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from rank_bm25 import BM25Okapi
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 app = FastAPI(
     title="Air-Gapped Hybrid RAG API",
-    description="Production-grade local RAG pipeline with Hybrid Search (Vector + BM25), Cross-Encoder Reranking, and Llama 3.2.",
-    version="1.0.0"
+    description="Production-grade local RAG pipeline with Hybrid Search (Vector + BM25), Cross-Encoder Reranking, Llama 3.2, and Dynamic Ingestion.",
+    version="1.1.0"
 )
 
 # Configuration Constants
@@ -23,6 +26,9 @@ DB_PASSWORD = "password"
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 RERANKER_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 OLLAMA_MODEL = "llama3.2"
+UPLOAD_DIR = "./uploaded_docs"
+
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 print("🚀 Initializing FastAPI Hybrid RAG Backend...")
 
@@ -33,35 +39,39 @@ reranker = CrossEncoder(RERANKER_MODEL_NAME)
 print("🤖 Initializing local LLM (llama3.2 via Ollama)...")
 llm = ChatOllama(model=OLLAMA_MODEL, temperature=0.0)
 
-print("🔌 Connecting to database and indexing BM25 corpus...")
+# Global indexing structures
 doc_ids = []
 doc_texts = []
 doc_metadata = []
 chunk_lookup = {}
 bm25 = None
 
-try:
-    conn = psycopg2.connect(
-        host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
-    )
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, chunk_text, source_file, page_number FROM document_chunks;")
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
+def load_corpus_from_db():
+    """Fetches all document chunks from PostgreSQL and builds/refreshes the in-memory BM25 index and lookup dictionary."""
+    global doc_ids, doc_texts, doc_metadata, chunk_lookup, bm25
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, chunk_text, source_file, page_number FROM document_chunks;")
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
 
-    doc_ids = [row[0] for row in rows]
-    doc_texts = [row[1] for row in rows]
-    doc_metadata = [{"source": row[2], "page": row[3]} for row in rows]
-    
-    chunk_lookup = {row[0]: {"text": row[1], "source": row[2], "page": row[3]} for row in rows}
+        doc_ids = [row[0] for row in rows]
+        doc_texts = [row[1] for row in rows]
+        doc_metadata = [{"source": row[2], "page": row[3]} for row in rows]
+        chunk_lookup = {row[0]: {"text": row[1], "source": row[2], "page": row[3]} for row in rows}
 
-    tokenized_corpus = [text.lower().split() for text in doc_texts]
-    bm25 = BM25Okapi(tokenized_corpus)
-    print(f"✅ Backend successfully initialized with {len(doc_texts)} chunks indexed!")
+        tokenized_corpus = [text.lower().split() for text in doc_texts]
+        bm25 = BM25Okapi(tokenized_corpus)
+        print(f"✅ Successfully indexed {len(doc_texts)} chunks into memory!")
+    except Exception as e:
+        print(f"❌ Database indexing failed: {e}")
 
-except Exception as e:
-    print(f"❌ Startup database indexing failed: {e}")
+print("🔌 Connecting to database and indexing BM25 corpus...")
+load_corpus_from_db()
 
 class QueryRequest(BaseModel):
     query: str
@@ -70,6 +80,67 @@ class QueryResponse(BaseModel):
     query: str
     answer: str
     sources: list[str]
+
+@app.post("/upload")
+async def upload_pdf(file: UploadFile = File(...)):
+    """Dynamically ingests a new PDF, chunks it, stores embeddings in PostgreSQL, and hot-reloads search indices."""
+    if not file.filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+    
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # 1. Parse PDF with lineage tracking
+        loader = PyPDFLoader(file_path)
+        pages = loader.load()
+        
+        # 2. Recursive Character Chunking
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=50
+        )
+        chunks = text_splitter.split_documents(pages)
+        
+        if not chunks:
+            raise HTTPException(status_code=400, detail="No extractable text found in PDF.")
+
+        # 3. Generate Embeddings & Insert into PostgreSQL pgvector
+        conn = psycopg2.connect(
+            host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
+        )
+        cursor = conn.cursor()
+
+        inserted_count = 0
+        for chunk in chunks:
+            text = chunk.page_content
+            page_num = chunk.metadata.get("page", 0) + 1
+            embedding = embedding_model.encode(text).tolist()
+
+            insert_sql = """
+                INSERT INTO document_chunks (chunk_text, embedding, source_file, page_number)
+                VALUES (%s, %s::vector, %s, %s);
+            """
+            cursor.execute(insert_sql, (text, embedding, file.filename, page_num))
+            inserted_count += 1
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # 4. Hot-Reload BM25 & Lookup Cache in Memory
+        load_corpus_from_db()
+
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "chunks_ingested": inserted_count,
+            "message": f"Successfully ingested {file.filename} into vector storage and updated active search indices."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/query", response_model=QueryResponse)
 def execute_hybrid_query(request: QueryRequest):
