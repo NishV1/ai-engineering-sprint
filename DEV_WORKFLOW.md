@@ -79,8 +79,15 @@ streamlit run app_ui.py
 
 ---
 
-## 🧪 4. Testing & Scientific Evaluation
-```bash   
+## 🧪 4. Automated Testing & Scientific Evaluation
+
+### Run Automated Test Suite (`pytest`)
+To execute the backend unit and endpoint test suite with isolated model/database mocks and track code coverage:
+```bash
+pytest test_app.py -v --cov=app
+```
+### Run Automated Pipeline Evaluation (Ragas)
+```bash
 # To verify pipeline quality and check benchmark scores (Faithfulness, Answer Relevancy, Context Precision/Recall) using Ragas:
 python evaluate_rag.py
 
