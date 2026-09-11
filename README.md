@@ -79,6 +79,16 @@ streamlit run app_ui.py
 python evaluate_rag.py
 ```
 
+## 🐳 Running with Docker Compose
+
+### You can spin up the entire multi-service stack (PostgreSQL vector database, FastAPI backend, and Streamlit UI) using a single command:
+```bash
+docker compose up --build
+```
+### Once running, access the services at:
+* Streamlit UI: http://localhost:8501
+* FastAPI Docs: http://localhost:8000/docs
+
 ## 📖 5. Documentation & Playbooks
 
 For a deeper dive into our architectural choices, engineering decisions, and daily study notes, check out:

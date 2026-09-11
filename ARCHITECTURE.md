@@ -6,29 +6,35 @@ This document outlines the architectural design, component choices, and data flo
 
 ## 📐 System Data Flow
 
-Raw PDF Documents 
+```text
+[ Streamlit UI (:8501) ] 
+       │ (HTTP / REST / Multipart Form / Dynamic Uploads)
+       ▼
+[ FastAPI Backend (:8000) ] 
+       ├── RecursiveCharacterTextSplitter (Day 2-3, 9)
+       ├── Sentence-Transformers (Local Embeddings & Cross-Encoder Reranking)
+       ├── Rank-BM25 (Keyword Search Index)
+       └── psycopg2 (Bulk Ingestion & SQL Queries)
        │
-       ▼ (Day 2-3)
-LangChain RecursiveCharacterTextSplitter 
-       │
-       ├───────────────────────────────┐
-       ▼                               ▼
-Dense Embeddings                Sparse Lexical Index
-(SentenceTransformers)          (BM25Okapi Token Index)
-       │                               │
-       ▼                               ▼
-PostgreSQL + pgvector           In-Memory BM25 Pool
-       └───────────────┬───────────────┘
-                       │
-                       ▼ (Day 6)
-      Reciprocal Rank Fusion (RRF)
-                       │
-                       ▼ (Top Candidates)
-      Cross-Encoder Reranker 
-      (ms-marco-MiniLM-L-6-v2)
-                       │
-                       ▼ (Top Precision Chunks)
-      Ollama LLM (Llama 3.2) ──► Grounded Response + Page Citations
+       ├─────────────────────────────────┐
+       ▼                                 ▼
+Dense Embeddings                  Sparse Lexical Index
+(SentenceTransformers)            (BM25Okapi Token Index)
+       │                                 │
+       ▼                                 ▼
+[ PostgreSQL + pgvector (:5432) ]    In-Memory BM25 Pool
+       └─────────────────┬───────────────┘
+                         │
+                         ▼ (Day 6)
+        Reciprocal Rank Fusion (RRF)
+                         │
+                         ▼ (Top Candidates)
+        Cross-Encoder Reranker 
+        (ms-marco-MiniLM-L-6-v2)
+                         │
+                         ▼ (Top Precision Chunks)
+        Ollama LLM (Llama 3.2) ──► Grounded Response + Page Citations
+```
 
 ---
 
@@ -48,11 +54,16 @@ PostgreSQL + pgvector           In-Memory BM25 Pool
 * **The Problem:** Enterprise clients face strict data compliance and privacy regulations prohibiting cloud LLM APIs.
 * **The Solution:** 100% local orchestration using Dockerized PostgreSQL, Hugging Face models, and Ollama. Zero external data egress.
 
+### 4. Containerized Multi-Service Architecture (Docker Compose)
+* **The Problem:** Managing separate Python services, web frontends, and databases across different machines introduces environment drift and configuration errors.
+* **The Solution:** A fully containerized stack orchestrated via Docker Compose over a secure internal bridge network, utilizing environment-agnostic configuration (`os.getenv`) to toggle endpoints between local loops and container service names (`postgres`, `backend`).
+* **Trade-off:** Initial Docker image build times (especially for PyTorch and transformer weights), traded for absolute environment parity, reproducibility, and one-command deployment (`docker compose up --build`).
+
 ---
 
 ## 🛠️ Technology Stack
-* **Orchestration & Framework:** Python, FastAPI, Streamlit, LangChain
-* **Vector Storage:** PostgreSQL 16 + `pgvector` extension (Dockerized)
+* **Orchestration & Framework:** Python, FastAPI, Streamlit, LangChain, Docker, Docker Compose
+* **Vector Storage:** PostgreSQL 17 + `pgvector` extension (Dockerized)
 * **Embeddings & Reranking:** `sentence-transformers`, `rank_bm25`
 * **Local LLM Engine:** Ollama (`llama3.2`)
 

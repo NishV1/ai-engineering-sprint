@@ -50,21 +50,30 @@ pip install -r requirements.txt
 
 ## 🏃 3. Running the Application Services
 
-### Initialize Infrastructure & Model
+You can run the application using either the Fully Containerized Stack (recommended for production-like parity) or the Local Hybrid Workflow (recommended for active code iteration).
+
+### Option A: Fully Containerized Stack (Day 10 Production Mode)
+Spin up the entire multi-service ecosystem (PostgreSQL, FastAPI Backend, and Streamlit Frontend) using Docker Compose with environment-agnostic configuration:
 ```bash
-# 1. Start PostgreSQL with pgvector
-docker compose up -d
+# Build and launch all services simultaneously
+docker compose up --build
+```
+* Streamlit UI: http://localhost:8501
+* FastAPI Docs: http://localhost:8000/docs
+
+### Option B: Local Hybrid Development (Dual Terminal Setup)
+If you are actively modifying backend or frontend Python code and want hot-reloading:
+```bash
+# 1. Start only the PostgreSQL vector database
+docker compose up -d postgres_vector
 
 # 2. Pull local model in Ollama
 ollama pull llama3.2
-```
 
-### Run Services (Dual Terminal Setup)
-```bash    
-# Terminal 1: Launch FastAPI Backend (Docs at http://localhost:8000/docs)
+# Terminal 1: Launch FastAPI Backend (with auto-reload)
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
 
-# Terminal 2: Launch Streamlit Frontend UI (Opens at http://localhost:8501)
+# Terminal 2: Launch Streamlit Frontend UI
 streamlit run app_ui.py
 ```
 
@@ -82,7 +91,7 @@ python evaluate_rag.py
 
 ## 🧹 5. Database Maintenance & Reset Procedures
 
-### If your vector database encounters schema conflicts or requires a fresh ingestion run:
+If your vector database encounters schema conflicts or requires a fresh ingestion run:
 ```bash
 # Tear down containers and clear persistent volumes:
 docker compose down -v

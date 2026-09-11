@@ -8,10 +8,10 @@ This document outlines the standard operating procedures, infrastructure habits,
 Managing your development environment lifecycle prevents port conflicts, memory leaks, and environment drift. Always follow these strict checklists at the beginning and end of every coding session:
 
 ### 🚀 Daily Startup Sequence
-1. **Start Infrastructure Containers:** Run `docker compose up -d` to spin up databases and services (e.g., PostgreSQL with `pgvector`). Verify via `docker ps` to ensure port `5432` is active.
+1. **Start Infrastructure Containers:** Spin up your multi-service stack via Docker Compose (`docker compose up -d` or `docker compose up --build`). Verify via `docker ps` to ensure ports (`5432`, `8000`, `8501`) are active.
 2. **Launch & Verify Local RAG Services:** Ensure local background services (such as Ollama on port `11434`) are active. If an address-in-use error occurs, it indicates the service is already running.
-3. **Activate Python Virtual Environment:** Run `.\venv\Scripts\Activate` (or equivalent shell path) to load dependencies.
-4. **Execute Pipeline:** Run your primary scripts (e.g., `python hybrid_rag.py`).
+3. **Activate Python Virtual Environment:** Run `.\venv\Scripts\Activate` (or equivalent shell path) to load local dependencies if running in hybrid development mode.
+4. **Execute Pipeline:** Test your API endpoints or launch local runner scripts.
 
 ### 🛑 Mandatory Day-End Shutdown & Documentation Checklist
 1. **Update Living Documentation (Mandatory Pre-Logout Step):** 
@@ -28,22 +28,22 @@ Managing your development environment lifecycle prevents port conflicts, memory 
 ## 2. Tooling & Dependency Guardrails
 When introducing new libraries, frameworks, or external utilities into a sprint project:
 * **Pre-Installation Auditing:** Always verify local requirements and check for existing installations or port allocations before adding new tools.
-* **Explicit Documentation:** Document any new CLI utilities or Python bridge packages (`pip install`) in setup documentation immediately.
+* **Explicit Documentation:** Document any new CLI utilities, Python bridge packages (`pip install`), or Docker container services in setup documentation immediately.
 
 ---
 
 ## 3. Version Control & Commit Standards
 Writing clear, descriptive commit messages keeps your repository professional and makes tracking feature increments easy for recruiters and collaborators.
-* **Frequent Commits:** Commit logical chunks of work (e.g., separating infrastructure setup from ingestion logic).
-* **Conventional Commits Format:** Use prefixes like `feat:`, `fix:`, or `refactor:` followed by a clear, concise description.
-  * *Example:* `git commit -m "feat: complete Day 6 hybrid search and reranking pipeline"`
+* **Frequent Commits:** Commit logical chunks of work (e.g., separating infrastructure setup from ingestion logic or Docker orchestration).
+* **Conventional Commits Format:** Use prefixes like `feat:`, `fix:`, `refactor:`, or `docs:` followed by a clear, concise description.
+  * *Example:* `git commit -m "feat: containerize multi-service stack with Docker Compose and env-agnostic config"`
 
 ---
 
 ## 4. Legacy Code & Schema Management (Defensive Engineering)
-As projects evolve from simple proof-of-concepts (Day 1) to complex multi-table production pipelines (Day 3+), database schemas and dependencies change.
+As projects evolve from simple proof-of-concepts (Day 1) to complex multi-table production pipelines (Day 3+) and containerized microservices (Day 10):
 * **Idempotency:** Write scripts that are self-healing where possible (e.g., using `CREATE EXTENSION IF NOT EXISTS` and `DROP TABLE IF EXISTS` where appropriate) so scripts can re-initialize themselves cleanly.
-* **Dependency Auditing:** Regularly review older test scripts when underlying infrastructure, libraries, or database schemas change to prevent silent technical debt.
+* **Environment-Agnostic Configuration:** Never hardcode connection strings, database hosts, or API URLs. Always utilize environment variables (`os.getenv`) with sensible local fallbacks (`localhost`) to guarantee seamless execution across local workstations and Docker bridge networks.
 
 ---
 
@@ -56,7 +56,7 @@ When executing sprint-based or complex engineering tasks across multiple days in
 
 ## 6. Portfolio & GitHub Optimization
 Your GitHub profile is your living resume. Make sure your repositories communicate value instantly:
-* **Descriptive Metadata:** Keep GitHub repository descriptions punchy, highlighting the core tech stack (Python, PostgreSQL/pgvector, LangChain) and architectural patterns (RAG, hybrid search, agentic workflows).
+* **Descriptive Metadata:** Keep GitHub repository descriptions punchy, highlighting the core tech stack (Python, PostgreSQL/pgvector, FastAPI, Streamlit, Docker) and architectural patterns (RAG, hybrid search, containerized orchestration).
 * **Comprehensive Documentation:** Maintain a thorough `README.md` that outlines the roadmap, architecture diagrams, and setup instructions.
 
 ---

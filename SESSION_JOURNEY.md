@@ -97,3 +97,29 @@ This document logs the daily architectural concepts, engineering decisions, tech
 ### 🎙️ Interview Soundbites & Engineering Defense
 * **On Moving Beyond Vibe Checks:** *"To treat AI engineering with the same rigor as traditional software engineering, I implemented automated evaluation using Ragas. Instead of subjectively testing a few prompts, I built an evaluation harness that scores faithfulness, answer relevancy, and context recall against a golden dataset."*
 * **On Local Benchmarking:** *"Maintaining strict data privacy requirements, I configured Ragas to execute its evaluation judge locally via Ollama, proving that advanced pipeline benchmarking can be achieved completely air-gapped without relying on external cloud APIs like OpenAI."*
+
+---
+
+## 🟢 Day 9: Dynamic File Ingestion Execution
+
+### 📊 Architectural Review & Design Decisions
+* **Runtime PDF Ingestion API (/upload):** Extended the FastAPI backend to accept runtime multi-document uploads, handling batch embedding generation (sentence-transformers) and bulk database insertions (psycopg2.extras) on the fly without requiring server restarts.
+
+* **File Inventory & Corpus Synchronization:** Implemented active file tracking endpoints (/files) that expose ingested document states, allowing real-time BM25 index corpus hot-reloading when new files are added.
+
+* **Interactive Frontend Sidebar Integration:** Enhanced the Streamlit UI with a dedicated document management sidebar displaying active files, file sizes, and drag-and-drop runtime upload capabilities.
+
+### 🎙️ Interview Soundbites & Engineering Defense
+* **On Moving from Static to Dynamic Pipelines**: *"Static RAG applications break down when users need to inject new documents on the fly. On Day 9, I engineered a dynamic runtime ingestion pipeline featuring bulk batch database insertion and automated BM25 corpus re-indexing, allowing users to upload PDFs directly through the UI without restarting the backend."*
+
+## 🔵 Day 10: Full-Stack Containerization & Deployment Architecture
+
+### 📊 Architectural Review & Design Decisions
+* **Multi-Service Docker Orchestration:** Architected a fully containerized ecosystem via Docker Compose, bridging the PostgreSQL vector database (pgvector), FastAPI backend service, and Streamlit frontend UI over a secure internal Docker network.
+
+* **Environment-Agnostic Configuration:** Implemented runtime environment variables (DB_HOST, API_URL) to seamlessly toggle the application between local development (localhost) and air-gapped production containers (postgres, backend) without changing source code.
+
+* **One-Command Deployment:** Achieved a true single-command local and production rollout (docker compose up --build), ensuring complete portability, isolation, and zero environment drift.
+
+### 🎙️ Interview Soundbites & Engineering Defense
+* **On Production Containerization:** *"To guarantee environment parity and eliminate 'works on my machine' issues, I fully containerized the sprint stack using Docker Compose. By orchestrating the PostgreSQL vector database, FastAPI backend, and Streamlit frontend across a private network with dynamic environment variables, I transformed a collection of scripts into a production-ready, one-command deployment architecture."*

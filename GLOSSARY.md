@@ -76,3 +76,11 @@ A living reference guide for all tools, languages, libraries, and technical conc
 * **Ragas (Retrieval Augmented Generation Assessment):** An automated open-source framework used to scientifically evaluate RAG pipelines using specialized metrics like faithfulness, answer relevance, and context precision.
 * **Faithfulness:** A Ragas evaluation metric measuring whether the generated answer is strictly grounded in the retrieved context, effectively scoring the LLM's hallucination rate.
 * **Context Precision:** A Ragas retrieval metric measuring whether the most relevant chunks are ranked highest in the retrieved context window, evaluating the efficiency of your reranker.
+
+---
+
+## 10. Containerization & Deployment Concepts (Day 10 Additions)
+* **Containerization:** The practice of packaging software code, runtimes, system tools, libraries, and settings into a single isolated container package (like Docker) that can run reliably on any host machine [Containerization: Definition, Examples, and Applications](https://www.graphapp.ai/engineering-glossary/devops/containerization).
+* **Docker Compose:** A tool for defining and running multi-container Docker applications using a single YAML configuration file, enabling streamlined network orchestration with one-command lifecycle management (`docker compose up`).
+* **Environment-Agnostic Configuration:** The design pattern of reading configuration settings and connection endpoints dynamically from runtime environment variables (e.g., `os.getenv`) rather than hardcoding them, ensuring seamless transitions between local workstations and containerized networks.
+* **Bridge Network:** A private virtual network internal to Docker that allows distinct containers (such as your FastAPI backend, Streamlit frontend, and PostgreSQL database) to communicate securely with one another using container service names as hostnames.
