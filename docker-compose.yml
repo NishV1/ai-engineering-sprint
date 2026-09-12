@@ -14,6 +14,13 @@ services:
       - pgdata:/var/lib/postgresql/data
     restart: always
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag_ollama
+    volumes:
+      - ollama_storage:/root/.ollama
+    restart: always
+
   backend:
     build:
       context: .
@@ -27,8 +34,10 @@ services:
       - DB_NAME=aidb
       - DB_USER=postgres
       - DB_PASSWORD=password
+      - OLLAMA_BASE_URL=http://ollama:11434
     depends_on:
       - postgres
+      - ollama
     restart: always
 
   frontend:
@@ -46,3 +55,4 @@ services:
 
 volumes:
   pgdata:
+  ollama_storage:

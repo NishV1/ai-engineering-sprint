@@ -10,3 +10,4 @@ langchain-ollama
 pydantic
 requests
 streamlit
+pypdf
