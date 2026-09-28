@@ -89,6 +89,37 @@ jobs:
         run: |
           pytest test_app.py -v --cov=app --cov-report=term-missing
 
+      - name: Seed Sample Vector Chunks for CI Evaluation
+        run: |
+          python -c "
+          import psycopg2, os
+          from sentence_transformers import SentenceTransformer
+
+          model = SentenceTransformer('all-MiniLM-L6-v2')
+          sample_text = 'This air-gapped hybrid RAG system utilizes PostgreSQL pgvector, BM25 keyword matching, Reciprocal Rank Fusion, and Cross-Encoder reranking for robust document retrieval.'
+          embedding = model.encode(sample_text).tolist()
+
+          conn = psycopg2.connect(
+              host=os.getenv('DB_HOST', 'localhost'),
+              port=os.getenv('DB_PORT', '5432'),
+              dbname=os.getenv('DB_NAME', 'aidb'),
+              user=os.getenv('DB_USER', 'postgres'),
+              password=os.getenv('DB_PASSWORD', 'password')
+          )
+          cursor = conn.cursor()
+          cursor.execute(
+              '''
+              INSERT INTO document_chunks (chunk_text, source_file, page_number, embedding)
+              VALUES (%s, %s, %s, %s::vector);
+              ''',
+              (sample_text, 'ci_benchmark_manual.pdf', 1, str(embedding))
+          )
+          conn.commit()
+          cursor.close()
+          conn.close()
+          print('CI benchmark chunk seeded successfully!')
+          "
+
       - name: Run Quantitative Retrieval Evaluation
         run: |
           python evaluate_retrieval.py
