@@ -29,7 +29,7 @@ jobs:
       DB_HOST: localhost
       DB_PORT: 5432
       DB_USER: postgres
-      DB_PASSWORD: postgrespassword
+      DB_PASSWORD: password
       DB_NAME: aidb
       OLLAMA_BASE_URL: http://localhost:11434
 
@@ -56,6 +56,34 @@ jobs:
           key: \({{ runner.os }}-hf-\){{ hashFiles('requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-hf-
+
+      - name: Initialize Database Schema (pgvector)
+        run: |
+          python -c "
+          import psycopg2, os
+          conn = psycopg2.connect(
+              host=os.getenv('DB_HOST', 'localhost'),
+              port=os.getenv('DB_PORT', '5432'),
+              dbname=os.getenv('DB_NAME', 'aidb'),
+              user=os.getenv('DB_USER', 'postgres'),
+              password=os.getenv('DB_PASSWORD', 'password')
+          )
+          cursor = conn.cursor()
+          cursor.execute('CREATE EXTENSION IF NOT EXISTS vector;')
+          cursor.execute('''
+              CREATE TABLE IF NOT EXISTS document_chunks (
+                  id SERIAL PRIMARY KEY,
+                  chunk_text TEXT NOT NULL,
+                  source_file VARCHAR(255) NOT NULL,
+                  page_number INT NOT NULL,
+                  embedding vector(384)
+              );
+          ''')
+          conn.commit()
+          cursor.close()
+          conn.close()
+          print('Database schema initialized successfully!')
+          "
 
       - name: Run Automated Backend Unit Tests (pytest)
         run: |
