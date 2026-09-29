@@ -1,4 +1,4 @@
-# 📖 AI Engineering Glossary (Beginner-Friendly Dictionary)
+# # 📖 AI Engineering Glossary (Beginner-Friendly Dictionary)
 
 A living reference guide for all tools, languages, libraries, and technical concepts used throughout the AI Engineering Sprint. Designed for clear, foundational understanding.
 
@@ -24,6 +24,7 @@ A living reference guide for all tools, languages, libraries, and technical conc
 * **Docker / Docker Compose:** Containerization tools used to package applications, databases, and dependencies into isolated environments. Compose allows multi-container applications (FastAPI, PostgreSQL, Streamlit, Ollama) to be defined and launched using a single configuration file.
 * **PostgreSQL (Postgres):** An open-source relational database management system used to store structured application data transactionally.
 * **`pgvector`:** An open-source extension for PostgreSQL that adds native high-dimensional vector storage and fast vector distance search operators (`<=>`).
+* **Database Service Container:** Running a dedicated, containerized database instance (e.g., `pgvector/pgvector:pg17` running `aidb`) isolated from host dependencies during both local development and automated CI workflows.
 
 ---
 
@@ -47,14 +48,14 @@ A living reference guide for all tools, languages, libraries, and technical conc
 
 ## 6. Advanced Retrieval & Search Concepts
 * **Hybrid Search:** A retrieval strategy combining dense vector search (semantic proximity) with sparse lexical search (BM25 keyword matching) to achieve high recall across both conceptual queries and exact serial numbers.
-* **Reciprocal Rank Fusion (RRF):** A scale-agnostic ranking algorithm that combines ranked candidate lists from different search algorithms (Vector and BM25) into a unified order based on candidate rank positions: $S_{\text{RRF}}(d) = \sum \frac{1}{k + r(d)}$.
+* **Reciprocal Rank Fusion (RRF):** A scale-agnostic ranking algorithm that combines ranked candidate lists from different search algorithms (Vector and BM25) into a unified order based on candidate rank positions: $S_{\text{RRF}}(d) = \sum \frac{1}{k + r(d)}$ with default $k=60$.
 * **Cross-Encoder Reranker:** A transformer model (`ms-marco-MiniLM-L-6-v2`) that evaluates query-document text pairs simultaneously through full attention layers to re-score and rank top candidates before sending them to the LLM.
 
 ---
 
 ## 7. Generative RAG & LLM Concepts
 * **Ollama:** A local LLM runtime engine that manages model weights (`llama3.2`) and exposes an air-gapped OpenAI-compatible API endpoint (`:11434`).
-* **Context Grounding / Prompt Constraints:** System prompt instructions that explicitly restrict an LLM to synthesizing answers using *only* retrieved context chunks, instructing the model to declare ignorance if context is insufficient.
+* **Context Grounding / Prompt Constraints:** System prompt instructions that explicitly restrict an LLM to synthesizing answers using only retrieved context chunks, instructing the model to declare ignorance if context is insufficient.
 * **Source Attribution:** The capability of an AI application to cite exact source files and page numbers alongside generated text.
 
 ---
@@ -75,13 +76,17 @@ A living reference guide for all tools, languages, libraries, and technical conc
 ---
 
 ## 10. Quantitative Retrieval Benchmarking & Evaluation
-* **Hit-Rate@K:** The percentage of evaluation queries for which the correct ground-truth document chunk appears anywhere within the top $K$ retrieved candidates.
-* **Mean Reciprocal Rank (MRR):** A statistical evaluation metric measuring where the first relevant chunk appears in the ranked results, calculated as the average of reciprocal ranks ($\frac{1}{\text{rank}}$) across test queries.
+* **Hit-Rate@K:** The percentage of evaluation queries for which the correct ground-truth document chunk appears anywhere within the top $K$ retrieved candidates (achieved score: 100.00% @ $K=5$).
+* **Mean Reciprocal Rank (MRR):** A statistical evaluation metric measuring where the first relevant chunk appears in the ranked results, calculated as the average of reciprocal ranks ($\frac{1}{\text{rank}}$) across test queries (achieved score: 1.0000).
 * **Ragas Framework:** An automated evaluation library that measures RAG pipeline performance metrics, including **Faithfulness** (hallucination detection) and **Context Recall** (retrieval completeness).
-
+* **Data Seeding for Benchmarking:** Programmatically inserting controlled vector chunks into PostgreSQL during automated test pipelines to verify retrieval calculations under repeatable conditions.
 ---
 
-## 11. Automated Testing & Reliability
+## 11. Automated Testing, CI/CD & Reliability
 * **FastAPI `TestClient`:** A synchronous test runner utility built on Starlette/HTTPX for testing REST API endpoints without launching external web servers.
 * **Mocking (`unittest.mock` / `@patch`):** A software testing technique that substitutes heavy dependencies (vector databases, embedding models, local LLMs) with controlled mock objects to enable fast, deterministic test runs.
+* **Context Manager Mocking (`__enter__`):** Configuring mocks for database connections (`with psycopg2.connect() as conn:`) so that transaction blocks execute cleanly inside unit tests without making network calls.
 * **`pytest-cov`:** A testing plugin that calculates statement coverage across Python application modules during test suite execution.
+* **Continuous Integration (CI):** The practice of automatically building, testing, and evaluating code changes on every commit using workflow automation tools.
+* **GitHub Actions (`ci.yml`):** A cloud workflow platform that runs automated verification jobs on every push—provisioning `pgvector` containers, setting up database schemas, executing `pytest`, running retrieval evaluations, and saving build artifacts.
+* **Build Artifacts:** Output files (such as `evaluation_report.csv` and evaluation logs) generated during workflow runs and preserved in GitHub Actions for verification and performance tracking.

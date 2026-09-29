@@ -1,6 +1,6 @@
 # 🏛️ System Architecture: Air-Gapped Hybrid RAG Pipeline
 
-This document outlines the architectural design, component choices, and data flow of the Production-Grade RAG system.
+This document outlines the architectural design, component choices, data flow, and testing infrastructure of the Production-Grade RAG system.
 
 ---
 
@@ -64,17 +64,22 @@ Dense Embeddings                 Sparse Lexical Index
 * **The Problem:** Global vector search across multiple ingested manuals leads to cross-document context bleeding, while slow cold-start model loading causes UI connection timeouts.
 * **The Solution:** Metadata-backed target document scoping (`selected_file`) isolates context to specific PDFs. Backend readiness polling (`/health`) keeps the Streamlit UI safely locked via `st.status` while heavy models load asynchronously into memory.
 
+### 6. Automated Verification & Continuous Integration (GitHub Actions)
+* **The Problem:** Regression errors in database connection context managers, state mutations, or model inference pipelines can break deployment builds undetected.
+* **The Solution:** Automated GitHub Actions pipeline (`.github/workflows/ci.yml`) that provisions a live PostgreSQL 17 + `pgvector` container (`aidb`), runs isolated `pytest` unit tests with mocked ML models, seeds benchmark vector chunks, and verifies retrieval quality via `evaluate_retrieval.py`.
+
 ---
 
 ## 🛠️ Technology Stack
 * **Orchestration & Framework:** Python 3.11, FastAPI, Streamlit, LangChain, Docker, Docker Compose
-* **Vector Storage:** PostgreSQL 17 + `pgvector` extension (Dockerized)
+* **Vector Storage:** PostgreSQL 17 + pgvector extension (Dockerized service)
 * **Embeddings & Reranking:** `sentence-transformers` (`all-MiniLM-L6-v2`), `cross-encoder` (`ms-marco-MiniLM-L-6-v2`), `rank_bm25`
 * **Local LLM Engine:** Ollama (`llama3.2`)
+* **Testing & CI/CD:** `pytest`, `pytest-cov`, GitHub Actions (`.github/workflows/ci.yml`)
 
 ---
 
-## 📊 4. System Evaluation & Benchmarking
+## 📊 System Evaluation & Benchmarking
 
 To eliminate "vibe-based" RAG development and guarantee production-grade reliability, the retrieval pipeline is continuously benchmarked using an automated evaluation harness (`evaluate_retrieval.py`) alongside local LLM evaluation metrics.
 

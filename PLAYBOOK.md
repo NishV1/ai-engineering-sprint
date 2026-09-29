@@ -18,7 +18,7 @@ Managing your development environment lifecycle prevents port conflicts, memory 
 1. **Update Living Documentation (Mandatory Pre-Logout Step):** 
    * Review and append architectural notes, design decisions, and interview soundbites to `SESSION_JOURNEY.md`.
    * Add any new technical terms or libraries to `GLOSSARY.md`.
-   * Ensure `README.md` reflects current sprint progress, benchmark metrics, and file structures.
+   * Ensure `README.md` and `DEV_WORKFLOW.md` reflect current sprint progress, CI/CD pipeline states, benchmark metrics, and file structures.
 2. **Version Control & Commit:** Stage all changes (`git add .`), write a descriptive conventional commit (`git commit -m "feat: [description] + update docs"`), and push to GitHub (`git push`).
 3. **Stop Infrastructure Containers:** Run `docker compose down` to gracefully stop databases and microservices while preserving vector and LLM data via persistent Docker volumes (`pgdata`, `ollama_storage`).
 4. **Optimize OS Resources (WSL 2):** Run `wsl --shutdown` on Windows to clear background Linux utility VMs and free up host RAM.
@@ -29,45 +29,48 @@ Managing your development environment lifecycle prevents port conflicts, memory 
 ## 2. Tooling & Dependency Guardrails
 When introducing new libraries, embedding models, vector stores, or external utilities into a sprint project:
 * **Pre-Installation Auditing:** Always verify local requirements and check for existing installations or port allocations before adding new tools. Avoid duplicate dependencies (e.g., standardizing on `psycopg2-binary` and `sentence-transformers` for local builds).
-* **Explicit Documentation:** Document any new CLI utilities, Python dependencies in `requirements.txt`, or Docker container definitions (`docker-compose.yml`, `Dockerfile.backend`, `Dockerfile.frontend`) in setup documentation immediately.
+* **Explicit Documentation:** Document any new CLI utilities, Python testing tools (`pytest`, `pytest-cov`), dependencies in `requirements.txt`, or Docker container definitions (`docker-compose.ym`l, `.github/workflows/ci.yml`) in setup documentation immediately.
 * **Volume Persistence Guardrails:** Always mount persistent Docker volumes for databases (`pgdata`) and LLM model weights (`ollama_storage`) to prevent long model re-download times across container rebuilds.
 
 ---
 
 ## 3. Version Control & Commit Standards
 Writing clear, descriptive commit messages keeps your repository professional and makes tracking feature increments easy for recruiters and collaborators.
-* **Frequent Commits:** Commit logical, self-contained units of work (e.g., separating infrastructure setup from hybrid RRF retrieval, Streamlit UI integration, or container orchestration).
-* **Conventional Commits Format:** Use structured prefixes (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`) followed by clear, concise descriptions.
-  * *Example:* `git commit -m "feat: containerize multi-service stack with Docker Compose and env-agnostic config"`
+* **Frequent Commits:** Commit logical, self-contained units of work (e.g., separating infrastructure setup from hybrid RRF retrieval, Streamlit UI integration, unit test mocking, or CI/CD container orchestration).
+* **Conventional Commits Format:** Use structured prefixes (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `ci:`) followed by clear, concise descriptions.
+  * *Example:* `git commit -m "ci: add GitHub Actions workflow for automated testing and retrieval evaluation"`
 
 ---
 
 ## 4. Legacy Code & Schema Management (Defensive Engineering)
 As projects evolve from simple proof-of-concepts to complex multi-table production pipelines and containerized microservices:
-* **Idempotency & Self-Healing Schemas:** Write database setup routines that are completely self-healing (using `CREATE EXTENSION IF NOT EXISTS vector;` and `CREATE TABLE IF NOT EXISTS document_chunks...`) at startup and prior to query execution so scripts re-initialize themselves cleanly.
-* **Resilient API Contracts:** Design endpoints to return graceful empty responses (e.g., returning `{"files": []}` from `/files`) rather than throwing HTTP 500 errors when queried against unpopulated databases.
-* **Environment-Agnostic Configuration:** Never hardcode connection strings, database hosts, or API URLs. Always utilize environment variables (`os.getenv`) with sensible local fallbacks (`localhost`, `http://host.docker.internal:11434`) to guarantee seamless execution across local workstations and Docker bridge networks.
+* **Idempotency & Self-Healing Schemas:** Write database setup routines that are completely self-healing (using `CREATE EXTENSION IF NOT EXISTS vector;` and `CREATE TABLE IF NOT EXISTS document_chunks...`) at startup, in CI initialization steps, and prior to query execution so scripts re-initialize themselves cleanly.
+* **Resilient API Contracts:* Design endpoints to return graceful empty responses (e.g., returning `{"files": []}` from `/files`) rather than throwing HTTP 500 errors when queried against unpopulated databases.
+* **Environment-Agnostic Configuration:** Never hardcode connection strings, database hosts, or API URLs. Always utilize environment variables (`os.getenv`) with sensible local fallbacks (`localhost`, `[http://host.docker.internal:11434](http://host.docker.internal:11434)`) to guarantee seamless execution across local workstations, Docker bridge networks, and CI service containers.
 * **Context Isolation (Document Scoping):** Prevent cross-document context bleeding by implementing document-scoped metadata filters across both vector (`WHERE source_file = %s`) and BM25 keyword search paths.
 * **Backend Health Polling:** Replace fixed delay sleeps (`time.sleep()`) with active polling against backend readiness endpoints (`/health`) using visual status components (`st.status`) in frontend UIs.
+* **Unit Test Isolation Standards:** Ensure `pytest` suites mock database context managers (`__enter__`), in-memory global state (`doc_ids`, `chunk_lookup key mappings`), local transformer encodings, and LangChain runnable chains (`llm.invoke`) to prevent external network or runtime database dependency during testing.
 
 ---
 
 ## 5. Multi-Day Session & Progress Tracking
 When executing sprint-based or complex engineering tasks across multiple days in a single sitting:
 * **Quantitative Retrieval Evaluation:** Benchmark retrieval performance using **Hit-Rate@K** and **Mean Reciprocal Rank (MRR)** (`evaluate_retrieval.py`).
-* **Automated Unit & API Testing (`pytest`):** Isolate API endpoint logic from heavy ML execution using `unittest.mock` (`MagicMock`, `@patch`) to mock database queries, dense embedding models, BM25 indices, and LLM synthesis.
+* **Automated Unit & API Testing (`pytest`):** Isolate API endpoint logic from heavy ML execution using `unittest.mock `(`MagicMock`, `@patch`) to mock database queries, dense embedding models, BM25 indices, and LLM synthesis.
+* **Automated Continuous Integration (CI):** Automate verification on every commit via GitHub Actions (`.github/workflows/ci.yml`), provisioning `pgvector` service containers (`aidb`), running schema setups, executing `pytest`, seeding benchmark data, and saving retrieval metrics reports as downloadable build artifacts.
 * **Explicit Documentation:** Document every individual day's accomplishments clearly in session summaries and track metrics progression.
 
 ---
 
 ## 6. Portfolio & GitHub Optimization
 Your GitHub profile is your living resume. Make sure your repositories communicate value instantly:
-* **Descriptive Metadata:** Keep GitHub repository descriptions punchy, highlighting the core tech stack (Python 3.11, PostgreSQL 17 / `pgvector`, FastAPI, Streamlit, Docker Compose, Ollama) and architectural patterns (Hybrid RAG, RRF, Cross-Encoder Reranking).
+* **Descriptive Metadata:** Keep GitHub repository descriptions punchy, highlighting the core tech stack (Python 3.11, PostgreSQL 17 / `pgvector`, FastAPI, Streamlit, Docker Compose, Ollama, GitHub Actions CI) and architectural patterns (Hybrid RAG, RRF, Cross-Encoder Reranking).
+* **CI Status Badges:** Display active build badges (`![CI Pipeline](https://github.com/NishV1/ai-engineering-sprint/actions/workflows/ci.yml/badge.svg)`) at the top of `README.md` to demonstrate automated quality assurance.
 * **Comprehensive Documentation:** Maintain a thorough `README.md` that outlines the roadmap, ASCII architecture diagrams, quickstart instructions, and verifiable benchmarks (**Hit-Rate@5: 100.00%**, **MRR: 1.0000**).
 
 ---
 
 ## 7. Living Documentation & Glossary Maintenance
 As new tools, libraries, or conceptual patterns are introduced during a sprint:
-* **Immediate Updates:** Whenever a new technical term, architecture pattern, or core concept is learned (e.g., Cosine Distance, Reciprocal Rank Fusion, Cross-Encoder), append or edit it in `GLOSSARY.md` with beginner-friendly definitions and analogies.
+* **Immediate Updates:** Whenever a new technical term, architecture pattern, or core concept is learned (e.g., Cosine Distance, Reciprocal Rank Fusion, Cross-Encoder, Service Containers, CI/CD Build Artifacts), append or edit it in `GLOSSARY.md` with beginner-friendly definitions and analogies
 * **Session Retrospectives:** Continuously update `SESSION_JOURNEY.md` to capture architectural reviews, design decisions, and interview-ready soundbites.

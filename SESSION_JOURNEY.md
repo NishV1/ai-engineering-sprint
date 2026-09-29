@@ -124,13 +124,17 @@ This document logs the daily architectural concepts, engineering decisions, tech
 
 ---
 
-## 📅 Day 11: Production-Grade Automated Testing & Retrieval Evaluation
+## Day 11: Production-Grade Automated Testing, CI/CD & Quantitative Evaluation
 
 ### 📊 Architectural Review & Design Decisions
 * **Automated Retrieval Evaluation (`evaluate_retrieval.py`):** Built a metrics harness to benchmark Hit-Rate@K and Mean Reciprocal Rank (MRR) across indexed documents. Implemented diagnostic mismatch logging to trace source and page discrepancies.
 * **Benchmark Performance Achieved:** Achieved **100.00% Hit-Rate@5** and **1.0000 MRR** across 7,800+ indexed chunks, validating that the combination of `pgvector`, BM25, RRF ($k=60$), and Cross-Encoder reranking places ground-truth candidate chunks in rank position #1.
-* **Automated Unit Testing (`pytest`):** Implemented unit and endpoint test suites using FastAPI `TestClient`, leveraging `unittest.mock` (`MagicMock`, `@patch`) to mock database queries, dense transformer models, BM25 indices, and LLM synthesis.
+* **Automated Unit Testing (`pytest`):** Implemented unit and endpoint test suites using FastAPI `TestClient`, leveraging `unittest.mock` (`MagicMock`, `@patch`) to mock database context managers, dense transformer models, BM25 indices, and LLM synthesis chains.
+* **Automated GitHub Actions CI Pipeline (`.github/workflows/ci.yml`):** Engineered a multi-step GitHub Actions pipeline that provisions a live PostgreSQL 17 + `pgvector` container (`aidb`), initializes schemas, runs `pytest`, seeds benchmark vectors, executes `evaluate_retrieval.py`, and uploads evaluation artifacts on every commit.
 
 ### 🎙️ Interview Soundbites & Engineering Defense
 * **On Quantitative Retrieval Benchmarking:** *"To move beyond subjective evaluation, I built a quantitative benchmarking harness measuring Hit-Rate@K and MRR. Testing against 7,800+ chunks proved that our Hybrid RRF and Cross-Encoder pipeline delivers a 100% Hit-Rate@5 and 1.0000 MRR."*
-* **On Unit Testing Machine Learning Pipelines:** *"Testing AI pipelines requires isolating heavy model execution. Using `pytest` and `unittest.mock`, I mocked vector store interactions and embedding models, creating an automated test suite that executes in seconds while ensuring full API contract compliance."*
+
+* **On Unit Testing Machine Learning Pipelines:** *"Testing AI pipelines requires isolating heavy model execution. Using pytest and unittest.mock, I mocked vector store interactions and embedding models, creating an automated test suite that executes in seconds while ensuring full API contract compliance."*
+
+* **On Continuous Integration & Delivery:** *"I wired our repository with a GitHub Actions CI pipeline that spins up a live pgvector container, executes backend unit tests, seeds sample benchmark data, and automatically validates retrieval metrics on every commit before release tagging."*

@@ -1,8 +1,8 @@
 # 🛠️ Developer Workflow & Quickstart Guide
 
-This document outlines the specific local development workflow, environment setup, and execution steps for the **Air-Gapped Hybrid RAG System**. 
+This document outlines the specific local development workflow, environment setup, execution steps, unit testing architecture, and continuous integration pipeline for the **Air-Gapped Hybrid RAG System**. 
 
-For our universal engineering standards, infrastructure hygiene, and defensive coding rules, refer to the [AI Engineering Playbook](./PLAYBOOK.md).
+For our universal engineering standards, infrastructure hygiene, and defensive coding rules, refer to the [AI Engineering Playbook](./PLAYBOOK.md) and [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ---
 
@@ -14,15 +14,15 @@ For our universal engineering standards, infrastructure hygiene, and defensive c
 ```bash
 docker exec -it rag_ollama ollama pull llama3.2
 ```
-3. **Activate Virtual Environment:** Load your local Python virtual environment (.\venv\Scripts\Activate on Windows or source venv/bin/activate on Linux/macOS) for local hybrid development.
-4. **Verify Health:** Confirm backend readiness via http://localhost:8000/health or observe the Streamlit UI status loader (st.status).
+3. **Activate Virtual Environment:** Load your local Python virtual environment (`.\venv\Scripts\Activate` on Windows PowerShell or `source venv/bin/activate` on Linux/macOS) for local hybrid development.
+4. **Verify Health:** Confirm backend readiness via `http://localhost:8000/health` (returns `{"status": "ready"}` or `{"status": "ok"}`).
 
 ### Day-End Shutdown Routine
-1. **Update Living Documentation:** Record daily architectural decisions, benchmark scores, and updates in SESSION_JOURNEY.md, README.md, and GLOSSARY.md.
-2. **Commit Changes:** Stage and commit your work using conventional commit messages (git add . then git commit -m "feat: [description]").
-3. **Stop Stack:** Gracefully stop local services while preserving persistent Docker volumes (docker compose down).
-4. **Free System RAM (Windows/WSL):** Clear background Linux VMs if necessary (wsl --shutdown).
-5. **Deactivate Environment:** Exit the active Python virtual environment (deactivate).
+1. **Update Living Documentation:** Record daily architectural decisions, benchmark scores, and updates in `SESSION_JOURNEY.md`, `README.md`, and `GLOSSARY.md`.
+2. **Commit Changes:** Stage and commit your work using conventional commit messages (`git add .` then `git commit -m "feat: [description]"`).
+3. **Stop Stack:** Gracefully stop local services while preserving persistent Docker volumes (`docker compose down`).
+4. **Free System RAM (Windows/WSL):** Clear background Linux VMs if necessary (`wsl --shutdown`).
+5. **Deactivate Environment:** Exit the active Python virtual environment (`deactivate`).
 
 ---
 
@@ -36,7 +36,7 @@ docker exec -it rag_ollama ollama pull llama3.2
 ### Clone & Configure
 ```bash
     # Clone the repository
-    git clone https://github.com/your-username/ai-engineering-sprint.git
+    git clone [https://github.com/NishV1/ai-engineering-sprint.git](https://github.com/NishV1/ai-engineering-sprint.git)
     cd ai-engineering-sprint
 
     # Copy environment configuration
@@ -52,9 +52,10 @@ python -m venv venv
 # (On Linux/macOS: source venv/bin/activate)
 
 # Install project dependencies
+python -m pip install --upgrade pip
 pip install -r requirements.txt
+pip install pytest pytest-cov
 ```
-
 ---
 
 ## 🏃 3. Running the Application Services
@@ -72,8 +73,10 @@ docker exec -it rag_ollama ollama pull llama3.2
 ```
 * Streamlit UI: http://localhost:8501
 * FastAPI Docs: http://localhost:8000/docs
+* Backend Health: http://localhost:8000/health
 
 ### Option B: Local Hybrid Development (Dual Terminal Setup)
+
 If you are actively modifying backend or frontend Python code and require hot-reloading:
 ```bash
 # 1. Start only the PostgreSQL vector database container
@@ -88,16 +91,21 @@ uvicorn app:app --reload --host 0.0.0.0 --port 8000
 # Terminal 2: Launch Streamlit Frontend UI
 streamlit run app_ui.py
 ```
-
 ---
 
 ## 🧪 4. Automated Testing & Quantitative Evaluation
 
 ### Run Unit & Endpoint Test Suite (pytest)
-Execute backend unit and endpoint tests with isolated ML model and database mocks:
+Execute backend unit and endpoint tests in `test_app.py` with isolated ML model and database mocks:
 ```bash
-pytest test_app.py -v --cov=app
+pytest test_app.py -v --cov=app --cov-report=term-missing
 ```
+### Key Mocking Requirements for test_app.py:
+* **In-Memory State:** `app.doc_ids = [1]` and `app.chunk_lookup = {1: {"text": "...", "source": "...", "page": 1}}`.
+* **Database Cursor:** `psycopg2` context manager (`__enter__`) configured to return 5-element tuples `(doc_id, chunk_text, source_file, page_number, similarity)`.
+* **ML Models:** `mock_embedding.encode().tolist()`, `mock_bm25.get_scores()`, and `mock_reranker.predict()`.
+* **LLM Pipeline:** `mock_llm.invoke.return_value` supplying mock object with `.content` string attribute.
+
 ### Run Automated Pipeline Evaluation (Ragas)
 To verify pipeline quality and check benchmark scores (Faithfulness, Answer Relevancy, Context Precision/Recall) using Ragas:
 ```bash
@@ -109,11 +117,20 @@ Benchmark Hit-Rate@K and Mean Reciprocal Rank (MRR) against ground-truth query s
 ```bash
 python evaluate_retrieval.py
 ```
+---
+
+## ⚙️ 5. Continuous Integration (GitHub Actions)
+1. The automated CI workflow (`.github/workflows/ci.yml`) executes on every push or pull request to `master` or `main`:
+2. Service Provisioning: Launches PostgreSQL 17 + `pgvector` container with database `aidb` on port `5432`.
+3. Schema Initialization: Creates `vector` extension and `document_chunks` table schema.
+4. Unit Tests: Executes `pytest test_app.py -v --cov=app` to verify route schemas and mock isolation.
+5. Data Seeding: Encodes and inserts a benchmark chunk into PostgreSQL using `SentenceTransformer('all-MiniLM-L6-v2')`.
+6. Retrieval Evaluation: Runs `evaluate_retrieval.py` against live vectors in PostgreSQL.
+7. Artifact Storage: Saves `evaluation_report.csv` and logs as downloadable build artifacts (14-day retention).
 
 ---
 
-## 🧹 5. Database Maintenance & Reset Procedures
-
+## 🧹 6. Database Maintenance & Reset Procedures
 If your vector database encounters schema conflicts or requires a complete reset:
 ```bash
 # Tear down containers and remove persistent volumes:
