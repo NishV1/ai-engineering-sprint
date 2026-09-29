@@ -1,6 +1,6 @@
 # 🚀 Production-Grade RAG & Agentic AI Sprint
 
-A comprehensive, production-ready Retrieval-Augmented Generation (RAG) and AI engineering pipeline built from scratch[cite: 6]. This project showcases advanced workflows including containerized vector infrastructure, smart recursive chunking, metadata-backed citations, local transformer embeddings, document-scoped hybrid search, cross-encoder reranking, FastAPI backend services, backend health polling, dynamic file ingestion, automated pytest unit testing, continuous integration, and automated retrieval benchmarking.
+A comprehensive, production-ready Retrieval-Augmented Generation (RAG) and AI engineering pipeline built from scratch. This project showcases advanced workflows including containerized vector infrastructure, smart recursive chunking, metadata-backed citations, local transformer embeddings, document-scoped hybrid search, cross-encoder reranking, FastAPI backend services, backend health polling, dynamic file ingestion, automated pytest unit testing, continuous integration, and automated retrieval benchmarking.
 
 ---
 
